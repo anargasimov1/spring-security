@@ -19,5 +19,4 @@ public class Blogs {
     String title;
     String content;
 
-
 }

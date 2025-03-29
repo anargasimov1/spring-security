@@ -4,6 +4,7 @@ import com.example.spring.boot.aplication.Models.UserEntity;
 import com.example.spring.boot.aplication.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,16 +29,15 @@ public class UserService  implements UserDetailsService {
       if (entity.isPresent()) {
          return ResponseEntity.ok(String.format("User with email %s already exists", user.getEmail()));
       }
-      else {
-          user.setPassword(passwordEncoder.encode(user.getPassword()));
-      }
-        return ResponseEntity.ok(userRepository.save(user));
+      user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+      return ResponseEntity.ok(userRepository.save(user));
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
-                .map(user -> new org.springframework.security.core.userdetails.User(
+                .map(user -> new User(
                         user.getEmail(),
                         user.getPassword(),
                         user.getRoles().stream().map(role-> new SimpleGrantedAuthority(role.getAuthority())).toList()

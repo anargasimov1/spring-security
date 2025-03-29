@@ -1,12 +1,14 @@
 package com.example.spring.boot.aplication.jwt;
 
 import com.example.spring.boot.aplication.Models.UserEntity;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,24 +16,36 @@ import java.util.Map;
 @Component
 public class JwtService {
 
+    @Value("${secretKey}")
+    private String secretKey;
+
     public String generateToken(UserEntity user) {
-        Map<String,String> claims = new HashMap<>();
-        claims.put("name",user.getName());
+        Map<String,Object> claims = new HashMap<>();
         claims.put("email",user.getEmail());
+        claims.put("role",user.getRole());
         return Jwts.builder()
                 .claims(claims)
-                .subject("admin")
+                .subject(user.getEmail())
                 .signWith(getSigningKey())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis()+1000*60*60*10))
+                .expiration(new Date(System.currentTimeMillis()+(1000*60*60*24)))
                 .compact();
 
 
     }
 
-    private Key getSigningKey() {
-        String secretKey = "3xv4W92v8bHV92kdoZm5Df5N2P1v9R2z3xJrPqA5H0A=";
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+
+    public String getClaimsFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+    }
+
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
