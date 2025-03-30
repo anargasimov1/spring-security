@@ -40,6 +40,6 @@ public class AuthController {
 
     @GetMapping("/token")
     public ResponseEntity<?> token(@RequestParam String token) {
-        return ResponseEntity.ok(service.getClaimsFromToken(token));
+        return ResponseEntity.ok(service.getUsernameFromToken(token));
     }
 }
